@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cabine de Fotos com Moldura e IA</title>
+    <title>Cabine de Fotos com Moldura</title>
     <style>
         /* CSS para estilizar a página */
         :root {
             --primary-color: #007bff;
-            --secondary-color: #6c757d;
             --success-color: #28a745;
-            --info-color: #17a2b8;
             --light-color: #f8f9fa;
             --dark-color: #343a40;
         }
@@ -106,22 +104,20 @@
 
         #captured-image {
             max-width: 90%;
-            max-height: 60%;
+            max-height: 80%; /* Aumentado o espaço para a imagem */
             border-radius: 8px;
             border: 3px solid var(--light-color);
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         .preview-actions {
-            margin-top: 20px;
+            margin-top: 25px;
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
+            gap: 20px;
         }
 
         .preview-actions button, .preview-actions a {
-            padding: 12px 25px;
+            padding: 15px 30px;
             border: none;
             border-radius: 10px;
             font-size: 16px;
@@ -130,12 +126,7 @@
             text-decoration: none;
             color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
-        }
-        
-        .preview-actions button:disabled {
-            background-color: var(--secondary-color);
-            cursor: not-allowed;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .preview-actions button:active, .preview-actions a:active {
@@ -145,22 +136,6 @@
 
         #download-btn { background-color: var(--success-color); }
         #retake-btn { background-color: var(--primary-color); }
-        #generate-caption-btn { background-color: var(--info-color); }
-        #copy-caption-btn { background-color: var(--secondary-color); }
-
-        #caption-container {
-            margin-top: 15px;
-            width: 90%;
-            max-width: 500px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-            color: var(--light-color);
-            font-size: 15px;
-            text-align: center;
-            min-height: 50px;
-            line-height: 1.5;
-        }
 
         #loading-indicator {
             position: fixed;
@@ -184,11 +159,6 @@
 
     <div id="capture-area">
         <video id="camera-stream" autoplay playsinline muted></video>
-        <!--
-            !!!! MUDANÇA IMPORTANTE !!!!
-            A moldura agora é carregada a partir de um ficheiro local.
-            Certifique-se de que o ficheiro 'moldura.png' está na mesma pasta que este 'index.html'.
-        -->
         <img id="frame-overlay" src="moldura.png" alt="Moldura da foto">
     </div>
 
@@ -201,19 +171,13 @@
     
     <div id="preview-container">
         <img id="captured-image" alt="Foto capturada">
-        <div id="caption-container" class="hidden">
-            <p id="caption-result">Clique em "Gerar Legenda" para que a IA crie uma mensagem para você!</p>
-        </div>
         <div class="preview-actions">
             <a id="download-btn" href="#" download="foto-com-moldura.png">Salvar Foto</a>
             <button id="retake-btn">Tirar Outra</button>
-            <button id="generate-caption-btn">✨ Gerar Legenda</button>
-            <button id="copy-caption-btn" class="hidden">Copiar Legenda</button>
         </div>
     </div>
 
     <div id="loading-indicator" class="hidden">Processando...</div>
-    <textarea id="copy-helper" style="position: absolute; left: -9999px;"></textarea>
 
     <canvas id="composition-canvas" class="hidden"></canvas>
 
@@ -226,12 +190,7 @@
             const downloadBtn = document.getElementById('download-btn');
             const retakeBtn = document.getElementById('retake-btn');
             const loadingIndicator = document.getElementById('loading-indicator');
-            const generateCaptionBtn = document.getElementById('generate-caption-btn');
-            const captionContainer = document.getElementById('caption-container');
-            const captionResult = document.getElementById('caption-result');
-            const copyCaptionBtn = document.getElementById('copy-caption-btn');
-            const copyHelper = document.getElementById('copy-helper');
-
+            
             let stream = null;
 
             async function startCamera() {
@@ -260,7 +219,6 @@
                 context.drawImage(video, 0, 0, compositionCanvas.width, compositionCanvas.height);
 
                 const frameImage = new Image();
-                // Como a imagem está no mesmo servidor (GitHub Pages), não precisamos de 'crossOrigin'
                 frameImage.src = frameOverlay.src;
 
                 frameImage.onload = () => {
@@ -271,77 +229,21 @@
                     loadingIndicator.classList.add('hidden');
                     previewContainer.classList.add('visible');
                     captureBtn.classList.add('hidden');
-                    captionContainer.classList.remove('hidden');
                 };
 
                 frameImage.onerror = () => {
                     loadingIndicator.classList.add('hidden');
-                    alert('ERRO CRÍTICO: Não foi possível carregar o ficheiro "moldura.png". Verifique se o nome do ficheiro está correto e se foi carregado para o GitHub.');
+                    alert('ERRO CRÍTICO: Não foi possível carregar o ficheiro "moldura.png". Verifique se o nome do ficheiro está correto e se foi carregado para o servidor.');
                 };
             }
 
             function retakePicture() {
                 previewContainer.classList.remove('visible');
                 captureBtn.classList.remove('hidden');
-                captionContainer.classList.add('hidden');
-                copyCaptionBtn.classList.add('hidden');
-                captionResult.textContent = 'Clique em "Gerar Legenda" para que a IA crie uma mensagem para você!';
-            }
-
-            async function generateCaption() {
-                captionResult.textContent = 'A gerar legenda com a IA...';
-                generateCaptionBtn.disabled = true;
-                copyCaptionBtn.classList.add('hidden');
-
-                const prompt = "Crie 3 opções de legendas curtas e divertidas para uma foto de festa de aniversário de 1 ano. A moldura tem o tema dos Looney Tunes. As legendas devem ser em português do Brasil e otimistas. Formate a resposta como uma lista numerada (ex: 1. ... 2. ...).";
-
-                const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
-                    
-                    const result = await response.json();
-                    
-                    if (result.candidates && result.candidates[0]?.content?.parts[0]) {
-                        const text = result.candidates[0].content.parts[0].text;
-                        captionResult.innerHTML = text.replace(/\n/g, '<br>');
-                        copyCaptionBtn.classList.remove('hidden');
-                    } else {
-                        captionResult.textContent = 'Não foi possível gerar uma legenda. Tente novamente.';
-                    }
-                } catch (error) {
-                    console.error('Erro ao chamar a API Gemini:', error);
-                    captionResult.textContent = 'Erro ao conectar com a IA. Tente novamente mais tarde.';
-                } finally {
-                    generateCaptionBtn.disabled = false;
-                }
-            }
-            
-            function copyCaption() {
-                const textToCopy = captionResult.innerText;
-                copyHelper.value = textToCopy;
-                copyHelper.select();
-                copyHelper.setSelectionRange(0, 99999);
-                try {
-                    document.execCommand('copy');
-                    alert('Legenda copiada para a área de transferência!');
-                } catch (err) {
-                    alert('Não foi possível copiar a legenda.');
-                }
             }
 
             captureBtn.addEventListener('click', takePicture);
             retakeBtn.addEventListener('click', retakePicture);
-            generateCaptionBtn.addEventListener('click', generateCaption);
-            copyCaptionBtn.addEventListener('click', copyCaption);
 
             startCamera();
         });
