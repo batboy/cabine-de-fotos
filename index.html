@@ -160,7 +160,7 @@
 
     <div id="capture-area">
         <video id="camera-stream" autoplay playsinline muted></video>
-        <img id="frame-overlay" src="moldura.png" alt="Moldura da foto">
+        <img id="frame-overlay" src="moldura2.png" alt="Moldura da foto">
     </div>
 
     <button id="capture-btn" title="Tirar Foto">
@@ -173,7 +173,7 @@
     <div id="preview-container">
         <img id="captured-image" alt="Foto capturada">
         <div class="preview-actions">
-            <a id="download-btn" href="#" download="foto-com-moldura.png">Salvar Foto</a>
+            <a id="download-btn" href="#" download="foto-com-moldura2.png">Salvar Foto</a>
             <button id="retake-btn">Tirar Outra</button>
         </div>
     </div>
@@ -234,7 +234,7 @@
 
                 frameImage.onerror = () => {
                     loadingIndicator.classList.add('hidden');
-                    alert('ERRO CRÍTICO: Não foi possível carregar o ficheiro "moldura.png". Verifique se o nome do ficheiro está correto e se foi carregado para o servidor.');
+                    alert('ERRO CRÍTICO: Não foi possível carregar o ficheiro "moldura2.png". Verifique se o nome do ficheiro está correto e se foi carregado para o servidor.');
                 };
             }
 
