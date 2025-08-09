@@ -36,6 +36,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            /* Efeito de espelho na câmara frontal */
             transform: scaleX(-1);
         }
 
@@ -105,14 +106,14 @@
 
         #captured-image {
             max-width: 90%;
-            max-height: 80%; /* Aumentado o espaço para a imagem */
+            max-height: 75%; /* Ajustado para dar espaço à instrução */
             border-radius: 8px;
             border: 3px solid var(--light-color);
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         .preview-actions {
-            margin-top: 25px;
+            margin-top: 20px;
             display: flex;
             gap: 20px;
         }
@@ -138,6 +139,16 @@
         #download-btn { background-color: var(--success-color); }
         #retake-btn { background-color: var(--primary-color); }
 
+        /* NOVO: Estilo para a instrução do iOS */
+        #ios-instruction {
+            color: #ccc;
+            font-size: 15px;
+            margin-top: 15px;
+            text-align: center;
+            padding: 0 20px;
+            max-width: 300px;
+        }
+
         #loading-indicator {
             position: fixed;
             top: 0;
@@ -160,7 +171,7 @@
 
     <div id="capture-area">
         <video id="camera-stream" autoplay playsinline muted></video>
-        <img id="frame-overlay" src="moldura2.png" alt="Moldura da foto">
+        <img id="frame-overlay" src="moldura.png" alt="Moldura da foto">
     </div>
 
     <button id="capture-btn" title="Tirar Foto">
@@ -173,9 +184,11 @@
     <div id="preview-container">
         <img id="captured-image" alt="Foto capturada">
         <div class="preview-actions">
-            <a id="download-btn" href="#" download="foto-com-moldura2.png">Salvar Foto</a>
+            <a id="download-btn" href="#" download="foto-com-moldura.png">Salvar Foto</a>
             <button id="retake-btn">Tirar Outra</button>
         </div>
+        <!-- NOVO: Instrução para utilizadores de iOS -->
+        <p id="ios-instruction" class="hidden">Para salvar, pressione e segure a imagem e escolha "Adicionar a Fotos".</p>
     </div>
 
     <div id="loading-indicator" class="hidden">Processando...</div>
@@ -191,8 +204,14 @@
             const downloadBtn = document.getElementById('download-btn');
             const retakeBtn = document.getElementById('retake-btn');
             const loadingIndicator = document.getElementById('loading-indicator');
+            const iosInstruction = document.getElementById('ios-instruction');
             
             let stream = null;
+
+            // NOVO: Função para detetar se o dispositivo é iOS
+            function isIOS() {
+                return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            }
 
             async function startCamera() {
                 try {
@@ -227,20 +246,32 @@
                     const imageDataUrl = compositionCanvas.toDataURL('image/png');
                     capturedImage.src = imageDataUrl;
                     downloadBtn.href = imageDataUrl;
+                    
                     loadingIndicator.classList.add('hidden');
                     previewContainer.classList.add('visible');
                     captureBtn.classList.add('hidden');
+
+                    // NOVO: Lógica para mostrar/esconder o botão de salvar
+                    if (isIOS()) {
+                        downloadBtn.classList.add('hidden');
+                        iosInstruction.classList.remove('hidden');
+                    } else {
+                        downloadBtn.classList.remove('hidden');
+                        iosInstruction.classList.add('hidden');
+                    }
                 };
 
                 frameImage.onerror = () => {
                     loadingIndicator.classList.add('hidden');
-                    alert('ERRO CRÍTICO: Não foi possível carregar o ficheiro "moldura2.png". Verifique se o nome do ficheiro está correto e se foi carregado para o servidor.');
+                    alert('ERRO CRÍTICO: Não foi possível carregar o ficheiro "moldura.png". Verifique se o nome do ficheiro está correto e se foi carregado para o servidor.');
                 };
             }
 
             function retakePicture() {
                 previewContainer.classList.remove('visible');
                 captureBtn.classList.remove('hidden');
+                // Garante que a instrução do iOS também é escondida
+                iosInstruction.classList.add('hidden');
             }
 
             captureBtn.addEventListener('click', takePicture);
