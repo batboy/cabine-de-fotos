@@ -9,6 +9,7 @@
         :root {
             --primary-color: #007bff;
             --success-color: #28a745;
+            --info-color: #17a2b8; /* Nova cor para o botão de partilhar */
             --danger-color: #dc3545; /* Cor vermelha para o aviso */
             --light-color: #f8f9fa;
             --dark-color: #343a40;
@@ -132,6 +133,9 @@
             color: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .preview-actions button:active, .preview-actions a:active {
@@ -141,6 +145,7 @@
 
         #download-btn { background-color: var(--success-color); }
         #retake-btn { background-color: var(--primary-color); }
+        #share-btn { background-color: var(--info-color); } /* Estilo para o novo botão */
 
         /* Estilo melhorado para a instrução do iOS */
         #ios-instruction {
@@ -198,6 +203,13 @@
     <div id="preview-container">
         <img id="captured-image" alt="Foto capturada">
         <div class="preview-actions">
+            <!-- NOVO: Botão de Partilhar -->
+            <button id="share-btn" class="hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1zM5.5 12a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1z"/>
+                </svg>
+                <span>Compartilhar</span>
+            </button>
             <a id="download-btn" href="#" download="foto-com-moldura.png">Salvar Foto</a>
             <!-- Instrução para utilizadores de iOS movida para aqui -->
             <p id="ios-instruction" class="hidden">
@@ -225,10 +237,10 @@
             const retakeBtn = document.getElementById('retake-btn');
             const loadingIndicator = document.getElementById('loading-indicator');
             const iosInstruction = document.getElementById('ios-instruction');
+            const shareBtn = document.getElementById('share-btn'); // Novo botão
             
             let stream = null;
 
-            // Função para detetar se o dispositivo é iOS
             function isIOS() {
                 return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             }
@@ -271,7 +283,11 @@
                     previewContainer.classList.add('visible');
                     captureBtn.classList.add('hidden');
 
-                    // Lógica para mostrar/esconder o botão de salvar
+                    // Lógica para mostrar/esconder o botão de salvar ou partilhar
+                    if (navigator.share) { // Verifica se a API de partilha existe
+                        shareBtn.classList.remove('hidden');
+                    }
+                    
                     if (isIOS()) {
                         downloadBtn.classList.add('hidden');
                         iosInstruction.classList.remove('hidden');
@@ -290,12 +306,41 @@
             function retakePicture() {
                 previewContainer.classList.remove('visible');
                 captureBtn.classList.remove('hidden');
-                // Garante que a instrução do iOS também é escondida
                 iosInstruction.classList.add('hidden');
+                shareBtn.classList.add('hidden'); // Esconde o botão de partilhar
+            }
+
+            // NOVA FUNÇÃO PARA PARTILHAR A IMAGEM
+            async function sharePicture() {
+                const imageDataUrl = capturedImage.src;
+                try {
+                    // Converte a imagem de dataURL para um ficheiro que pode ser partilhado
+                    const response = await fetch(imageDataUrl);
+                    const blob = await response.blob();
+                    const file = new File([blob], 'foto-com-moldura.png', { type: blob.type });
+
+                    // Verifica se o navegador pode partilhar este tipo de ficheiro
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Foto com Moldura',
+                            text: 'Veja a foto que tirei com esta moldura divertida!',
+                        });
+                    } else {
+                        alert('O seu navegador não suporta a partilha deste tipo de ficheiro.');
+                    }
+                } catch (error) {
+                    console.error('Erro ao partilhar:', error);
+                    // Não mostra um alerta se o utilizador simplesmente fechar o menu de partilha
+                    if (error.name !== 'AbortError') {
+                        alert('Ocorreu um erro ao tentar partilhar a foto.');
+                    }
+                }
             }
 
             captureBtn.addEventListener('click', takePicture);
             retakeBtn.addEventListener('click', retakePicture);
+            shareBtn.addEventListener('click', sharePicture); // Adiciona o evento ao novo botão
 
             startCamera();
         });
