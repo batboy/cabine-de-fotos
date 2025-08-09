@@ -9,7 +9,6 @@
         :root {
             --primary-color: #007bff;
             --success-color: #28a745;
-            --info-color: #17a2b8; /* Nova cor para o botão de partilhar */
             --danger-color: #dc3545; /* Cor vermelha para o aviso */
             --light-color: #f8f9fa;
             --dark-color: #343a40;
@@ -117,16 +116,22 @@
         .preview-actions {
             margin-top: 20px;
             display: flex;
-            flex-direction: column; /* Alinha os itens verticalmente */
-            align-items: center;   /* Centraliza os itens */
+            flex-direction: column; /* Alinha os grupos verticalmente */
+            align-items: center;   /* Centraliza os grupos */
+            gap: 15px;
+        }
+        
+        /* NOVO: Grupo para botões lado a lado */
+        .button-group {
+            display: flex;
             gap: 15px;
         }
 
         .preview-actions button, .preview-actions a {
-            padding: 15px 30px;
+            padding: 12px 22px; /* Padding menor para botões menores */
             border: none;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px; /* Fonte menor */
             font-weight: bold;
             cursor: pointer;
             text-decoration: none;
@@ -145,7 +150,7 @@
 
         #download-btn { background-color: var(--success-color); }
         #retake-btn { background-color: var(--primary-color); }
-        #share-btn { background-color: var(--info-color); } /* Estilo para o novo botão */
+        #share-btn { background-color: var(--success-color); } /* Verde */
 
         /* Estilo melhorado para a instrução do iOS */
         #ios-instruction {
@@ -203,15 +208,16 @@
     <div id="preview-container">
         <img id="captured-image" alt="Foto capturada">
         <div class="preview-actions">
-            <!-- NOVO: Botão de Partilhar -->
-            <button id="share-btn" class="hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1zM5.5 12a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1z"/>
-                </svg>
-                <span>Compartilhar</span>
-            </button>
+            <div class="button-group">
+                <button id="share-btn" class="hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1zM5.5 12a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1z"/>
+                    </svg>
+                    <span>Compartilhar</span>
+                </button>
+                <button id="retake-btn">Tirar Outra</button>
+            </div>
             <a id="download-btn" href="#" download="foto-com-moldura.png">Salvar Foto</a>
-            <!-- Instrução para utilizadores de iOS movida para aqui -->
             <p id="ios-instruction" class="hidden">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
@@ -219,7 +225,6 @@
                 </svg>
                 <span>Para salvar no iPhone, pressione e segure a imagem e escolha "Adicionar a Fotos".</span>
             </p>
-            <button id="retake-btn">Tirar Outra</button>
         </div>
     </div>
 
@@ -237,7 +242,7 @@
             const retakeBtn = document.getElementById('retake-btn');
             const loadingIndicator = document.getElementById('loading-indicator');
             const iosInstruction = document.getElementById('ios-instruction');
-            const shareBtn = document.getElementById('share-btn'); // Novo botão
+            const shareBtn = document.getElementById('share-btn');
             
             let stream = null;
 
@@ -283,8 +288,7 @@
                     previewContainer.classList.add('visible');
                     captureBtn.classList.add('hidden');
 
-                    // Lógica para mostrar/esconder o botão de salvar ou partilhar
-                    if (navigator.share) { // Verifica se a API de partilha existe
+                    if (navigator.share) {
                         shareBtn.classList.remove('hidden');
                     }
                     
@@ -307,19 +311,16 @@
                 previewContainer.classList.remove('visible');
                 captureBtn.classList.remove('hidden');
                 iosInstruction.classList.add('hidden');
-                shareBtn.classList.add('hidden'); // Esconde o botão de partilhar
+                shareBtn.classList.add('hidden');
             }
 
-            // NOVA FUNÇÃO PARA PARTILHAR A IMAGEM
             async function sharePicture() {
                 const imageDataUrl = capturedImage.src;
                 try {
-                    // Converte a imagem de dataURL para um ficheiro que pode ser partilhado
                     const response = await fetch(imageDataUrl);
                     const blob = await response.blob();
                     const file = new File([blob], 'foto-com-moldura.png', { type: blob.type });
 
-                    // Verifica se o navegador pode partilhar este tipo de ficheiro
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             files: [file],
@@ -331,7 +332,6 @@
                     }
                 } catch (error) {
                     console.error('Erro ao partilhar:', error);
-                    // Não mostra um alerta se o utilizador simplesmente fechar o menu de partilha
                     if (error.name !== 'AbortError') {
                         alert('Ocorreu um erro ao tentar partilhar a foto.');
                     }
@@ -340,7 +340,7 @@
 
             captureBtn.addEventListener('click', takePicture);
             retakeBtn.addEventListener('click', retakePicture);
-            shareBtn.addEventListener('click', sharePicture); // Adiciona o evento ao novo botão
+            shareBtn.addEventListener('click', sharePicture);
 
             startCamera();
         });
