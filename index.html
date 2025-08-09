@@ -9,6 +9,7 @@
         :root {
             --primary-color: #007bff;
             --success-color: #28a745;
+            --danger-color: #dc3545; /* Cor vermelha para o aviso */
             --light-color: #f8f9fa;
             --dark-color: #343a40;
         }
@@ -106,7 +107,7 @@
 
         #captured-image {
             max-width: 90%;
-            max-height: 75%; /* Ajustado para dar espaço à instrução */
+            max-height: 70%; /* Ajustado para dar espaço à instrução */
             border-radius: 8px;
             border: 3px solid var(--light-color);
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
@@ -115,7 +116,9 @@
         .preview-actions {
             margin-top: 20px;
             display: flex;
-            gap: 20px;
+            flex-direction: column; /* Alinha os itens verticalmente */
+            align-items: center;   /* Centraliza os itens */
+            gap: 15px;
         }
 
         .preview-actions button, .preview-actions a {
@@ -139,18 +142,25 @@
         #download-btn { background-color: var(--success-color); }
         #retake-btn { background-color: var(--primary-color); }
 
-        /* NOVO: Estilo melhorado para a instrução do iOS */
+        /* Estilo melhorado para a instrução do iOS */
         #ios-instruction {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             color: #ffffff;
-            font-size: 16px;
+            font-size: 18px; /* Fonte maior */
             font-weight: bold;
-            margin-top: 20px;
             text-align: center;
             padding: 12px 20px;
             max-width: 320px;
-            background-color: var(--primary-color);
+            background-color: var(--danger-color); /* Fundo vermelho */
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        #ios-instruction svg {
+            flex-shrink: 0; /* Impede que o ícone encolha */
         }
 
         #loading-indicator {
@@ -189,10 +199,16 @@
         <img id="captured-image" alt="Foto capturada">
         <div class="preview-actions">
             <a id="download-btn" href="#" download="foto-com-moldura.png">Salvar Foto</a>
+            <!-- Instrução para utilizadores de iOS movida para aqui -->
+            <p id="ios-instruction" class="hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                </svg>
+                <span>Para salvar no iPhone, pressione e segure a imagem e escolha "Adicionar a Fotos".</span>
+            </p>
             <button id="retake-btn">Tirar Outra</button>
         </div>
-        <!-- NOVO: Instrução para utilizadores de iOS -->
-        <p id="ios-instruction" class="hidden">Para salvar, pressione e segure a imagem e escolha "Adicionar a Fotos".</p>
     </div>
 
     <div id="loading-indicator" class="hidden">Processando...</div>
@@ -212,7 +228,7 @@
             
             let stream = null;
 
-            // NOVO: Função para detetar se o dispositivo é iOS
+            // Função para detetar se o dispositivo é iOS
             function isIOS() {
                 return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             }
@@ -255,7 +271,7 @@
                     previewContainer.classList.add('visible');
                     captureBtn.classList.add('hidden');
 
-                    // NOVO: Lógica para mostrar/esconder o botão de salvar
+                    // Lógica para mostrar/esconder o botão de salvar
                     if (isIOS()) {
                         downloadBtn.classList.add('hidden');
                         iosInstruction.classList.remove('hidden');
